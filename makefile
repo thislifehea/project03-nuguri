@@ -1,0 +1,16 @@
+CC = gcc
+CFLAGS = -std=c11 -Wall -Wextra
+
+TARGET = nuguri
+SRC = nuguri.c
+
+all: $(TARGET)
+
+$(TARGET): $(SRC)
+	$(CC) $(CFLAGS) -o $(TARGET) $(SRC)
+
+run: $(TARGET)
+	./$(TARGET)
+
+clean:
+	rm -f $(TARGET)
