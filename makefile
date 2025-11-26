@@ -1,16 +1,11 @@
 CC = gcc
-CFLAGS = -std=c11 -Wall -Wextra
-
+CFLAGS = -std=c11 -Wall -Wextra -O2
 TARGET = nuguri
-SRC = nuguri.c
+SRCS = nuguri.c
 
-all: $(TARGET)
+$(TARGET): $(SRCS)
+	$(CC) $(CFLAGS) -o $(TARGET) $(SRCS)
 
-$(TARGET): $(SRC)
-	$(CC) $(CFLAGS) -o $(TARGET) $(SRC)
-
-run: $(TARGET)
-	./$(TARGET)
-
+.PHONY: clean
 clean:
 	rm -f $(TARGET)
