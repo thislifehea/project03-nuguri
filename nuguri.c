@@ -311,7 +311,10 @@ void move_player(char input) {
         }
     }
     
-    if (player_y >= MAP_HEIGHT) init_stage();
+    if (player_y >= MAP_HEIGHT) {
+        play_sound(SOUND_DEAD);
+        init_stage();
+    }
 }
 
 
