@@ -57,6 +57,38 @@ int coin_count = 0;
 // 터미널 설정
 struct termios orig_termios;
 
+void play_sound(int type) {
+#ifdef _WIN32 //windows의 beep함수 사용
+//주파수, 지속시간 조정
+    if (type == SOUND_COIN) {
+        Beep(800, 40);
+    } else if(type == SOUND_HIT) {
+        Beep(170, 130);
+    } else if(type == SOUND_CLEAR) {
+        Beep(900, 50);
+        Beep(1200, 60);
+    } else if(type == SOUND_JUMP) {
+        Beep(500, 30);
+    } else if(type == SOUND_DEAD) {
+        Beep(180, 600);
+    }
+#else //posix환경에서는 시스템 벨 문자 \a 사용 
+    if (type == SOUND_COIN) {
+        printf("\a");
+    } else if(type == SOUND_HIT) {
+        printf("\a\a");
+    } else if(type == SOUND_CLEAR) {
+        printf("\a\a\a");
+    } else if(type == SOUND_JUMP) {
+        printf("\a");
+    } else if(type == SOUND_DEAD) {
+        printf("\a\a\a\a\a");
+    }
+    fflush(stdout);
+#endif
+
+}
+
 // 함수 선언
 void disable_raw_mode();
 void enable_raw_mode();
@@ -156,37 +188,6 @@ void load_maps() {
     fclose(file);
 }
 
-void play_sound(int type) {
-#ifdef _WIN32 //windows의 beep함수 사용
-//주파수, 지속시간 조정
-    if (type == SOUND_COIN) {
-        Beep(800, 40);
-    } else if(type == SOUND_HIT) {
-        Beep(170, 130);
-    } else if(type == SOUND_CLEAR) {
-        Beep(900, 50);
-        Beep(1200, 60);
-    } else if(type == SOUND_JUMP) {
-        Beep(500, 30);
-    } else if(type == SOUND_DEAD) {
-        Beep(180, 600);
-    }
-#else //posix환경에서는 시스템 벨 문자 \a 사용 
-    if (type == SOUND_COIN) {
-        printf("\a";)
-    } else if(type == SOUND_HIT) {
-        printf("\a\a");
-    } else if(type == SOUND_CLEAR) {
-        printf("\a\a\a");
-    } else if(type == SOUND_JUMP) {
-        printf("\a");
-    } else if(type == SOUND_DEAD) {
-        printf("\a\a\a\a\a");
-    }
-    fflush(stdout);
-#endif
-
-}
 
 // 현재 스테이지 초기화
 void init_stage() {
