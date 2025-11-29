@@ -336,6 +336,7 @@ void check_collisions(int* game_over) {
                 *game_over = 1;   // 게임 종료
                 return;
             }
+            play_sound(SOUND_DEAD);
             init_stage();         // 스테이지 restart
             return;
         }
