@@ -12,6 +12,11 @@
 #define MAX_STAGES 2
 #define MAX_ENEMIES 15 // 최대 적 개수 증가
 #define MAX_COINS 30   // 최대 코인 개수 증가
+#define SOUND_COIN 1
+#define SOUND_HIT 2
+#define SOUND_CLEAR 3
+#define SOUND_JUMP 4
+#define SOUND_DEAD 5
 
 // 구조체 정의
 typedef struct {
