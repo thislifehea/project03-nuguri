@@ -1,10 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <termios.h>
-#include <fcntl.h>
 #include <time.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#include <conio.h>
+
+#else
+#include <unistd.h>
+#include <termios.h> 
+#include <fcntl.h>
+#endif
 
 // 맵 및 게임 요소 정의 (수정된 부분)
 #define MAP_WIDTH 40  // 맵 너비를 40으로 변경
@@ -12,11 +19,11 @@
 #define MAX_STAGES 2
 #define MAX_ENEMIES 15 // 최대 적 개수 증가
 #define MAX_COINS 30   // 최대 코인 개수 증가
-#define SOUND_COIN 1
-#define SOUND_HIT 2
-#define SOUND_CLEAR 3
-#define SOUND_JUMP 4
-#define SOUND_DEAD 5
+#define SOUND_COIN 1 //코인 획득
+#define SOUND_HIT 2 //충돌
+#define SOUND_CLEAR 3 //스테이지 클리어
+#define SOUND_JUMP 4 //점프
+#define SOUND_DEAD 5 //게임오버
 
 // 구조체 정의
 typedef struct {
