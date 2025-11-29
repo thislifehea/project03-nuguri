@@ -106,6 +106,7 @@ int main() {
             stage++;
             score += 100;
             if (stage < MAX_STAGES) {
+                play_sound(SOUND_CLEAR);
                 init_stage();
             } else {
                 game_over = 1;
