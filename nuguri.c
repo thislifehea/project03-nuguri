@@ -271,6 +271,7 @@ void move_player(char input) {
             if (!is_jumping && (floor_tile == '#' || on_ladder)) {
                 is_jumping = 1;
                 velocity_y = -2;
+                play_sound(SOUND_JUMP);
             }
             break;
     }
