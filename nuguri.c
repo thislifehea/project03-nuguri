@@ -337,10 +337,11 @@ void check_collisions(int* game_over) {
         if (player_x == enemies[i].x && player_y == enemies[i].y) {
             life--;  // 생명 감소
             if (life <= 0) {
-                *game_over = 1;   // 게임 종료
+                *game_over = 1;
+                play_sound(SOUND_DEAD);   // 게임 종료
                 return;
             }
-            play_sound(SOUND_DEAD);
+            play_sound(SOUND_HIT);
             init_stage();         // 스테이지 restart
             return;
         }
