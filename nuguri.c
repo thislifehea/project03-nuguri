@@ -29,6 +29,7 @@ char map[MAX_STAGES][MAP_HEIGHT][MAP_WIDTH + 1];
 int player_x, player_y;
 int stage = 0;
 int score = 0;
+int life = 3;   // 생명 개수
 
 // 플레이어 상태
 int is_jumping = 0;
@@ -50,10 +51,10 @@ void enable_raw_mode();
 void load_maps();
 void init_stage();
 void draw_game();
-void update_game(char input);
+void update_game(char input, int* game_over);
 void move_player(char input);
 void move_enemies();
-void check_collisions();
+void check_collisions(int* game_over);
 int kbhit();
 
 int main() {
@@ -85,7 +86,7 @@ int main() {
             c = '\0';
         }
 
-        update_game(c);
+        update_game(c, &game_over);
         draw_game();
         usleep(90000);
 
@@ -167,7 +168,7 @@ void init_stage() {
 // 게임 화면 그리기
 void draw_game() {
     printf("\x1b[2J\x1b[H");
-    printf("Stage: %d | Score: %d\n", stage + 1, score);
+    printf("Stage: %d | Score: %d | Life: %d\n", stage + 1, score, life);  // 생명 출력
     printf("조작: ← → (이동), ↑ ↓ (사다리), Space (점프), q (종료)\n");
 
     char display_map[MAP_HEIGHT][MAP_WIDTH + 1];
@@ -203,10 +204,10 @@ void draw_game() {
 }
 
 // 게임 상태 업데이트
-void update_game(char input) {
+void update_game(char input, int* game_over) {
     move_player(input);
     move_enemies();
-    check_collisions();
+    check_collisions(game_over);   // game_over 전달
 }
 
 // 플레이어 이동 로직
@@ -280,18 +281,16 @@ void move_enemies() {
 }
 
 // 충돌 감지 로직
-void check_collisions() {
+void check_collisions(int* game_over) {
     for (int i = 0; i < enemy_count; i++) {
         if (player_x == enemies[i].x && player_y == enemies[i].y) {
-            score = (score > 50) ? score - 50 : 0;
-            init_stage();
+            life--;  // 생명 감소
+            if (life <= 0) {
+                *game_over = 1;   // 게임 종료
+                return;
+            }
+            init_stage();         // 스테이지 restart
             return;
-        }
-    }
-    for (int i = 0; i < coin_count; i++) {
-        if (!coins[i].collected && player_x == coins[i].x && player_y == coins[i].y) {
-            coins[i].collected = 1;
-            score += 20;
         }
     }
 }
