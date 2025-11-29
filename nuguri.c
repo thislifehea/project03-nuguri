@@ -109,6 +109,7 @@ int main() {
                 play_sound(SOUND_CLEAR);
                 init_stage();
             } else {
+                play_sound(SOUND_CLEAR);
                 game_over = 1;
                 printf("\x1b[2J\x1b[H");
                 printf("축하합니다! 모든 스테이지를 클리어했습니다!\n");
