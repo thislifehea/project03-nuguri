@@ -169,7 +169,20 @@ void play_sound(int type) {
     } else if(type == SOUND_DEAD) {
         Beep(180, 600);
     }
-
+#else //posix환경에서는 시스템 벨 문자 \a 사용 
+    if (type == SOUND_COIN) {
+        printf("\a";)
+    } else if(type == SOUND_HIT) {
+        printf("\a\a");
+    } else if(type == SOUND_CLEAR) {
+        printf("\a\a\a");
+    } else if(type == SOUND_JUMP) {
+        printf("\a");
+    } else if(type == SOUND_DEAD) {
+        printf("\a\a\a\a\a");
+    }
+    fflush(stdout);
+#endif
 
 }
 
