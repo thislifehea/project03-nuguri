@@ -312,6 +312,12 @@ void move_player(char input) {
     }
     
     if (player_y >= MAP_HEIGHT) init_stage();
+    for (int i = 0; i < coin_count; i++) {
+        if (!coins[i].collected && player_x == coins[i].x && player_y == coins[i].y) {
+            coins[i].collected = 1;
+            score += 20;
+        }
+    }
 }
 
 
