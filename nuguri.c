@@ -347,7 +347,14 @@ void title_screen() {
     printf("   코인을 모으고 E 지점까지 도달하세요!\n\n");
     printf("   아무 키나 눌러서 게임을 시작합니다...\n");
 
+    while (!kbhit()) {
+        usleep(100000);
+    }
     getchar();
+
+    while (kbhit()) {
+        getchar();
+    }
 }
 
 // 엔딩 화면
@@ -360,5 +367,12 @@ void ending_screen() {
     printf("   최종 점수: %d\n\n", score);
     printf("   아무 키나 눌러서 게임을 종료합니다...\n");
 
+    while (kbhit()) {
+        getchar();
+    }
+
+    while (!kbhit()) {
+        usleep(100000);
+    }
     getchar();
 }
