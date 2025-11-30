@@ -55,11 +55,16 @@ void move_player(char input);
 void move_enemies();
 void check_collisions();
 int kbhit();
+void title_screen();
+void ending_screen();
 
 int main() {
     srand(time(NULL));
     enable_raw_mode();
     load_maps();
+
+    title_screen();  // 타이틀 화면 표시
+
     init_stage();
 
     char c = '\0';
@@ -96,11 +101,22 @@ int main() {
                 init_stage();
             } else {
                 game_over = 1;
-                printf("\x1b[2J\x1b[H");
-                printf("축하합니다! 모든 스테이지를 클리어했습니다!\n");
-                printf("최종 점수: %d\n", score);
             }
         }
+    }
+
+    printf("\x1b[2J\x1b[H");  // 화면 클리어
+
+    if (stage >= MAX_STAGES) {
+        ending_screen();      // 모든 스테이지 클리어 엔딩
+    } else {
+        printf("게임을 종료했습니다.\n");
+        printf("최종 점수: %d\n", score);
+        printf("아무 키를 누르면 종료합니다. . .\n");
+        while (!kbhit()) {
+            usleep(100000);
+        }
+        getchar();
     }
 
     disable_raw_mode();
@@ -315,4 +331,34 @@ int kbhit() {
         return 1;
     }
     return 0;
+}
+
+// 타이틀 화면
+void title_screen() {
+    printf("\x1b[2J\x1b[H");  // 화면 클리어
+    printf("========================================\n");
+    printf("                TITLE SCREEN             \n");
+    printf("========================================\n\n");
+    printf("   조작법\n");
+    printf("   ← →  : 좌우 이동\n");
+    printf("   ↑ ↓  : 사다리 오르내리기\n");
+    printf("   Space: 점프\n");
+    printf("   q    : 게임 종료\n\n");
+    printf("   코인을 모으고 E 지점까지 도달하세요!\n\n");
+    printf("   아무 키나 눌러서 게임을 시작합니다...\n");
+
+    getchar();
+}
+
+// 엔딩 화면
+void ending_screen() {
+    printf("\x1b[2J\x1b[H");  // 화면 클리어
+    printf("========================================\n");
+    printf("           STAGE ALL CLEAR!!            \n");
+    printf("========================================\n\n");
+    printf("   축하합니다! 모든 스테이지를 클리어했습니다!\n");
+    printf("   최종 점수: %d\n\n", score);
+    printf("   아무 키나 눌러서 게임을 종료합니다...\n");
+
+    getchar();
 }
