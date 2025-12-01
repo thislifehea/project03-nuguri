@@ -112,10 +112,10 @@ void play_sound(int type) {
     }
 #else //posix환경에서는 시스템 벨 문자 \a 사용 
     if(type == SOUND_COIN)  system("powershell.exe -Command \"[console]::beep(800,40)\"");
-    else if(type == SOUND_JUMP) system("powershell.exe -Command \"[console]::beep(600,30)\"");
-    else if(type == SOUND_HIT)  system("powershell.exe -Command \"[console]::beep(200,200)\"");
-    else if(type == SOUND_CLEAR) system("powershell.exe -Command \"[console]::beep(1200,100); Start-Sleep -m 50; [console]::beep(1500,150)\"");
-    else if(type == SOUND_DEAD)  system("powershell.exe -Command \"[console]::beep(150,800)\"");
+    else if(type == SOUND_JUMP) (void)system("powershell.exe -Command \"[console]::beep(600,30)\"");
+    else if(type == SOUND_HIT)  (void)system("powershell.exe -Command \"[console]::beep(200,200)\"");
+    else if(type == SOUND_CLEAR) (void)system("powershell.exe -Command \"[console]::beep(1200,100); Start-Sleep -m 50; [console]::beep(1500,150)\"");
+    else if(type == SOUND_DEAD)  (void)system("powershell.exe -Command \"[console]::beep(150,800)\"");
 #endif
 
 }
@@ -217,7 +217,7 @@ void load_maps() {
         exit(1);
     }
     int s = 0, r = 0;
-    char line[MAP_WIDTH + 2]; // 버퍼 크기는 MAP_WIDTH에 따라 자동 조절됨
+    char line[MAP_WIDTH + 10]; // 버퍼 크기를 넉넉하게
     while (s < MAX_STAGES && fgets(line, sizeof(line), file)) {
         if ((line[0] == '\n' || line[0] == '\r') && r > 0) {
             s++;
@@ -226,7 +226,15 @@ void load_maps() {
         }
         if (r < MAP_HEIGHT) {
             line[strcspn(line, "\n\r")] = 0;
-            strncpy(map[s][r], line, MAP_WIDTH + 1);
+            int len = strlen(line);
+            for (int i = 0; i < MAP_WIDTH; i++) {
+                if (i < len) {
+                    map[s][r][i] = line[i];
+                } else {
+                    map[s][r][i] = ' ';  // 부족한 부분 공백 처리
+                }
+            }
+            map[s][r][MAP_WIDTH] = '\0';
             r++;
         }
     }
@@ -280,6 +288,7 @@ void draw_game() {
                 display_map[y][x] = cell;
             }
         }
+        display_map[y][MAP_WIDTH] = '\0';
     }
     
     for (int i = 0; i < coin_count; i++) {
