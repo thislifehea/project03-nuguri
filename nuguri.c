@@ -73,25 +73,11 @@ void play_sound(int type) {
         Beep(180, 600);
     }
 #else //posix환경에서는 시스템 벨 문자 \a 사용 
-    if (type == SOUND_COIN || type == SOUND_JUMP) {
-        printf("\a"); fflush(stdout);
-    } else if(type == SOUND_HIT) {
-        printf("\a");
-        usleep(10000);
-        printf("\a"); fflush(stdout);
-    } else if(type == SOUND_CLEAR) {
-        printf("\a"); usleep(10000);
-        printf("\a"); usleep(10000);
-        printf("\a"); fflush(stdout);
-        
-    } else if(type == SOUND_DEAD) {
-        printf("\a"); usleep(10000);
-        printf("\a"); usleep(10000);
-        printf("\a"); usleep(10000);
-        printf("\a"); usleep(10000);
-        printf("\a"); fflush(stdout);
-    }
-   
+    if(type == SOUND_COIN)  system("powershell.exe -Command \"[console]::beep(800,40)\"");
+    else if(type == SOUND_JUMP) system("powershell.exe -Command \"[console]::beep(600,30)\"");
+    else if(type == SOUND_HIT)  system("powershell.exe -Command \"[console]::beep(200,200)\"");
+    else if(type == SOUND_CLEAR) system("powershell.exe -Command \"[console]::beep(1200,100); Start-Sleep -m 50; [console]::beep(1500,150)\"");
+    else if(type == SOUND_DEAD)  system("powershell.exe -Command \"[console]::beep(150,800)\"");
 #endif
 
 }
