@@ -81,6 +81,13 @@ int stage = 0;
 int score = 0;
 int life = 3;   // 생명 개수
 
+//게임 종료 상태
+#define END_NONE 0
+#define END_QUIT 1
+#define END_DEAD 2
+
+int end_type = END_NONE;
+
 // 플레이어 상태
 int is_jumping = 0;
 int velocity_y = 0;
@@ -133,6 +140,7 @@ void check_collisions(int* game_over);
 int kbhit();
 void title_screen();
 void ending_screen();
+void dead_ending_screen();
 
 int main() {
 #ifdef _WIN32
@@ -154,6 +162,7 @@ int main() {
             c = getchar();
             if (c == 'q') {
                 game_over = 1;
+                end_type = END_QUIT;
                 continue;
             }
             if (c == '\x1b') {
@@ -195,15 +204,19 @@ int main() {
 
     if (stage >= MAX_STAGES) {
         ending_screen();      // 모든 스테이지 클리어 엔딩
+    } else if (end_type == END_DEAD) {
+    // 2) 목숨이 다 떨어져서 Game Over
+    dead_ending_screen();    
     } else {
-        printf("게임을 종료했습니다.\n");
-        printf("최종 점수: %d\n", score);
-        printf("아무 키를 누르면 종료합니다. . .\n");
-        while (!kbhit()) {
-            usleep(100000);
-        }
-        getchar();
+    // 3) q로 나간 경우
+    printf("게임을 종료했습니다.\n");
+    printf("최종 점수: %d\n", score);
+    printf("아무 키를 누르면 종료합니다. . .\n");
+    while (!kbhit()) {
+        usleep(100000);
     }
+    getchar();
+}
 
     disable_raw_mode();
     return 0;
@@ -405,6 +418,7 @@ void check_collisions(int* game_over) {
             life--;  // 생명 감소
             if (life <= 0) {
                 *game_over = 1;
+                end_type = END_DEAD;
                 play_sound(SOUND_DEAD);   // 게임 종료
                 return;
             }
@@ -452,6 +466,21 @@ void ending_screen() {
     while (kbhit()) {
         getchar();
     }
+
+    while (!kbhit()) {
+        usleep(100000);
+    }
+    getchar();
+}
+
+void dead_ending_screen() {
+    printf("\x1b[2J\x1b[H");  // 화면 클리어
+    printf("========================================\n");
+    printf("               GAME  OVER               \n");
+    printf("========================================\n\n");
+    printf("   모든 목숨을 잃었습니다...\n");
+    printf("   최종 점수: %d\n\n", score);
+    printf("   아무 키나 눌러서 게임을 종료합니다...\n");
 
     while (!kbhit()) {
         usleep(100000);
