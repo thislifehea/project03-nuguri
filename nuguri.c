@@ -346,6 +346,13 @@ void check_collisions(int* game_over) {
             return;
         }
     }
+    for (int i = 0; i < coin_count; i++) {
+        if (!coins[i].collected && player_x == coins[i].x && player_y == coins[i].y) {
+            coins[i].collected = 1;
+            score += 10;
+            play_sound(SOUND_COIN);   
+        }
+    }
 }
 
 // 비동기 키보드 입력 확인
