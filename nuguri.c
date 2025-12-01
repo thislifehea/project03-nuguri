@@ -57,6 +57,11 @@ int kbhit() {
 #define MAX_STAGES 2
 #define MAX_ENEMIES 15 // 최대 적 개수 증가
 #define MAX_COINS 30   // 최대 코인 개수 증가
+#define SOUND_COIN 1 //코인 획득
+#define SOUND_HIT 2 //충돌
+#define SOUND_CLEAR 3 //스테이지 클리어
+#define SOUND_JUMP 4 //점프
+#define SOUND_DEAD 5 //게임오버
 
 // 구조체 정의
 typedef struct {
@@ -86,6 +91,34 @@ Enemy enemies[MAX_ENEMIES];
 int enemy_count = 0;
 Coin coins[MAX_COINS];
 int coin_count = 0;
+
+// 터미널 설정
+struct termios orig_termios;
+
+void play_sound(int type) {
+#ifdef _WIN32 //windows의 beep함수 사용
+//주파수, 지속시간 조정
+    if (type == SOUND_COIN) {
+        Beep(800, 40);
+    } else if(type == SOUND_HIT) {
+        Beep(170, 130);
+    } else if(type == SOUND_CLEAR) {
+        Beep(900, 50);
+        Beep(1200, 60);
+    } else if(type == SOUND_JUMP) {
+        Beep(500, 30);
+    } else if(type == SOUND_DEAD) {
+        Beep(180, 600);
+    }
+#else //posix환경에서는 시스템 벨 문자 \a 사용 
+    if(type == SOUND_COIN)  system("powershell.exe -Command \"[console]::beep(800,40)\"");
+    else if(type == SOUND_JUMP) system("powershell.exe -Command \"[console]::beep(600,30)\"");
+    else if(type == SOUND_HIT)  system("powershell.exe -Command \"[console]::beep(200,200)\"");
+    else if(type == SOUND_CLEAR) system("powershell.exe -Command \"[console]::beep(1200,100); Start-Sleep -m 50; [console]::beep(1500,150)\"");
+    else if(type == SOUND_DEAD)  system("powershell.exe -Command \"[console]::beep(150,800)\"");
+#endif
+
+}
 
 // 함수 선언
 void disable_raw_mode();
@@ -149,8 +182,10 @@ int main() {
             stage++;
             score += 100;
             if (stage < MAX_STAGES) {
+                play_sound(SOUND_CLEAR);
                 init_stage();
             } else {
+                play_sound(SOUND_CLEAR);
                 game_over = 1;
             }
         }
@@ -197,6 +232,7 @@ void load_maps() {
     }
     fclose(file);
 }
+
 
 // 현재 스테이지 초기화
 void init_stage() {
@@ -290,6 +326,7 @@ void move_player(char input) {
             if (!is_jumping && (floor_tile == '#' || on_ladder)) {
                 is_jumping = 1;
                 velocity_y = -2;
+                play_sound(SOUND_JUMP);
             }
             break;
     }
@@ -327,7 +364,10 @@ void move_player(char input) {
         }
     }
     
-    if (player_y >= MAP_HEIGHT) init_stage();
+    if (player_y >= MAP_HEIGHT) {
+        play_sound(SOUND_DEAD);
+        init_stage();
+    }
     for (int i = 0; i < coin_count; i++) {
         if (!coins[i].collected && player_x == coins[i].x && player_y == coins[i].y) {
             coins[i].collected = 1;
@@ -355,9 +395,11 @@ void check_collisions(int* game_over) {
         if (player_x == enemies[i].x && player_y == enemies[i].y) {
             life--;  // 생명 감소
             if (life <= 0) {
-                *game_over = 1;   // 게임 종료
+                *game_over = 1;
+                play_sound(SOUND_DEAD);   // 게임 종료
                 return;
             }
+            play_sound(SOUND_HIT);
             init_stage();         // 스테이지 restart
             return;
         }
