@@ -1,10 +1,55 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <termios.h>
-#include <fcntl.h>
 #include <time.h>
+
+//분기문 추가
+#ifdef _WIN32
+ #include <conio.h>
+ #include <windows.h>
+#define getchar() _getch()
+void disable_raw_mode() {}
+void enable_raw_mode() {}
+int kbhit(void) {
+    return _kbhit();
+}
+
+#else
+ #include <unistd.h>
+ #include <termios.h>
+ #include <fcntl.h>
+// 터미널 설정
+struct termios orig_termios;
+// 터미널 Raw 모드 활성화/비활성화(기존코드 부분 사용)
+void disable_raw_mode() { tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios); }
+void enable_raw_mode() {
+    tcgetattr(STDIN_FILENO, &orig_termios);
+    atexit(disable_raw_mode);
+    struct termios raw = orig_termios;
+    raw.c_lflag &= ~(ECHO | ICANON);
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+}
+// 비동기 키보드 입력 확인(기존코드 부분 사용)
+int kbhit() {
+    struct termios oldt, newt;
+    int ch;
+    int oldf;
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
+    fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
+    ch = getchar();
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    fcntl(STDIN_FILENO, F_SETFL, oldf);
+    if (ch != EOF) {
+        ungetc(ch, stdin);
+        return 1;
+    }
+    return 0;
+}
+#endif
 
 // 맵 및 게임 요소 정의 (수정된 부분)
 #define MAP_WIDTH 40  // 맵 너비를 40으로 변경
@@ -42,9 +87,6 @@ int enemy_count = 0;
 Coin coins[MAX_COINS];
 int coin_count = 0;
 
-// 터미널 설정
-struct termios orig_termios;
-
 // 함수 선언
 void disable_raw_mode();
 void enable_raw_mode();
@@ -60,6 +102,9 @@ void title_screen();
 void ending_screen();
 
 int main() {
+#ifdef _WIN32
+    system("chcp 65001 > nul");
+#endif
     srand(time(NULL));
     enable_raw_mode();
     load_maps();
@@ -93,7 +138,12 @@ int main() {
 
         update_game(c, &game_over);
         draw_game();
+        //윈도우는 밀리초를 사용하기에 1/1000으로 만들어놓음
+        #ifdef _WIN32
+            Sleep(90);
+        #else
         usleep(90000);
+        #endif
 
         if (map[stage][player_y][player_x] == 'E') {
             stage++;
@@ -122,16 +172,6 @@ int main() {
 
     disable_raw_mode();
     return 0;
-}
-
-// 터미널 Raw 모드 활성화/비활성화
-void disable_raw_mode() { tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios); }
-void enable_raw_mode() {
-    tcgetattr(STDIN_FILENO, &orig_termios);
-    atexit(disable_raw_mode);
-    struct termios raw = orig_termios;
-    raw.c_lflag &= ~(ECHO | ICANON);
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
 
 // 맵 파일 로드
@@ -183,9 +223,16 @@ void init_stage() {
 
 // 게임 화면 그리기
 void draw_game() {
+    //윈도우용 cls 추가
+    #ifdef _WIN32
+    system("cls");
+    printf("Stage: %d | Score: %d | Life: %d\n", stage + 1, score, life);  // 생명 출력
+    printf("조작: A(왼쪽) D(오른쪽) (이동), W(위) S(아래) (사다리), Space (점프), q (종료)\n");//윈도우와 맥,리눅스 입력이 다르므로 분기작성
+    #else
     printf("\x1b[2J\x1b[H");
     printf("Stage: %d | Score: %d | Life: %d\n", stage + 1, score, life);  // 생명 출력
     printf("조작: ← → (이동), ↑ ↓ (사다리), Space (점프), q (종료)\n");
+    #endif
 
     char display_map[MAP_HEIGHT][MAP_WIDTH + 1];
     for(int y=0; y < MAP_HEIGHT; y++) {
@@ -281,6 +328,12 @@ void move_player(char input) {
     }
     
     if (player_y >= MAP_HEIGHT) init_stage();
+    for (int i = 0; i < coin_count; i++) {
+        if (!coins[i].collected && player_x == coins[i].x && player_y == coins[i].y) {
+            coins[i].collected = 1;
+            score += 20;
+        }
+    }
 }
 
 
@@ -309,27 +362,6 @@ void check_collisions(int* game_over) {
             return;
         }
     }
-}
-
-// 비동기 키보드 입력 확인
-int kbhit() {
-    struct termios oldt, newt;
-    int ch;
-    int oldf;
-    tcgetattr(STDIN_FILENO, &oldt);
-    newt = oldt;
-    newt.c_lflag &= ~(ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-    oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
-    fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
-    ch = getchar();
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-    fcntl(STDIN_FILENO, F_SETFL, oldf);
-    if(ch != EOF) {
-        ungetc(ch, stdin);
-        return 1;
-    }
-    return 0;
 }
 
 // 타이틀 화면
