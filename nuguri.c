@@ -122,11 +122,29 @@ void play_sound(int type) {
         Beep(180, 600);
     }
 #else //posix환경에서는 시스템 벨 문자 \a 사용 
-    if(type == SOUND_COIN)  system("powershell.exe -Command \"[console]::beep(800,40)\"");
-    else if(type == SOUND_JUMP) (void)system("powershell.exe -Command \"[console]::beep(600,30)\"");
-    else if(type == SOUND_HIT)  (void)system("powershell.exe -Command \"[console]::beep(200,200)\"");
-    else if(type == SOUND_CLEAR) (void)system("powershell.exe -Command \"[console]::beep(1200,100); Start-Sleep -m 50; [console]::beep(1500,150)\"");
-    else if(type == SOUND_DEAD)  (void)system("powershell.exe -Command \"[console]::beep(150,800)\"");
+ char cmd[256];
+
+ switch (type) {
+        case SOUND_COIN:  
+            sprintf(cmd, "powershell.exe -Command \"[console]::beep(800,40)\" > /dev/null 2>&1 &"); 
+            break;
+        case SOUND_JUMP:  
+            sprintf(cmd, "powershell.exe -Command \"[console]::beep(600,30)\" > /dev/null 2>&1 &"); 
+            break;
+        case SOUND_HIT:   
+            sprintf(cmd, "powershell.exe -Command \"[console]::beep(200,200)\" > /dev/null 2>&1 &"); 
+            break;
+        case SOUND_CLEAR: 
+            // 클리어 소리는 길이가 길어 렉이 더 잘 느껴지므로, 특히 비동기화가 중요합니다.
+            sprintf(cmd, "powershell.exe -Command \"[console]::beep(1200,100); Start-Sleep -m 50; [console]::beep(1500,150)\" > /dev/null 2>&1 &"); 
+            break;
+        case SOUND_DEAD:  
+            sprintf(cmd, "powershell.exe -Command \"[console]::beep(150,800)\" > /dev/null 2>&1 &"); 
+            break;
+        default: return;
+    }
+
+    system(cmd);
 #endif
 
 }
@@ -475,6 +493,7 @@ void move_player(char input) {
         if (!coins[i].collected && player_x == coins[i].x && player_y == coins[i].y) {
             coins[i].collected = 1;
             score += 20;
+            play_sound(SOUND_COIN);
         }
     }
 }
