@@ -87,8 +87,7 @@ int life = 3;   // 생명 개수
 char ***map = NULL;           
 int *stage_widths = NULL;     
 int *stage_heights = NULL;    
-int stage_count = 0;
-char **display_map = NULL;          
+int stage_count = 0;      
 
 //게임 종료 상태
 #define END_NONE 0
@@ -298,13 +297,6 @@ void load_maps() {
     fclose(fp);
 }    
 
-void allocate_display_map(int H, int W) {
-    display_map = malloc(sizeof(char*) * H);
-    for (int i = 0; i < H; i++) {
-        display_map[i] = malloc(W + 1);
-    }
-}
-
 // 현재 스테이지 초기화
 void init_stage() {
     enemy_count = 0;
@@ -317,10 +309,6 @@ void init_stage() {
     int H = stage_heights[stage];
     int W = stage_widths[stage];
 
-    if (display_map == NULL) {
-        allocate_display_map(H, W);
-    }    
-
     for (int y = 0; y < H; y++) {         
         for (int x = 0; x < W; x++) {     
             char cell = map[stage][y][x];
@@ -330,8 +318,9 @@ void init_stage() {
                 player_y = y;
             }
             else if (cell == 'X' && enemy_count < MAX_ENEMIES) {
-                enemies[enemy_count++] =
+                enemies[enemy_count] =
                     (Enemy){x, y, (rand() % 2) ? 1 : -1};
+                enemy_count++;                    
             }
             else if (cell == 'C' && coin_count < MAX_COINS) {
                 coins[coin_count++] = (Coin){x, y, 0};
@@ -356,10 +345,10 @@ void draw_game() {
     int H = stage_heights[stage];
     int W = stage_widths[stage];    
 
-    //char **display_map = malloc(sizeof(char*) * H);
+    char **display_map = malloc(sizeof(char*) * H);
 
     for (int y = 0; y < H; y++) {
-        //display_map[y] = malloc(W + 1);
+        display_map[y] = malloc(W + 1);
 
         for (int x = 0; x < W; x++) {
             char cell = map[stage][y][x];
@@ -386,9 +375,9 @@ void draw_game() {
 
     for (int y = 0; y < H; y++) {
         printf("%s\n", display_map[y]);
-        //free(display_map[y]);
+        free(display_map[y]);
     }
-    //free(display_map);
+    free(display_map);
 }
 
 // 게임 상태 업데이트
