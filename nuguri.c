@@ -12,6 +12,14 @@
 #ifdef _WIN32
  #include <conio.h>
  #include <windows.h>
+void gotoxy(int x, int y) {
+    //콘솔창 제어 권한
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    //좌표저장용
+    COORD pos = { x,y };
+    //콘솔의 커서 위치 설정, hOut를 pos로
+    SetConsoleCursorPosition(hOut, pos);
+}
 #define getchar() _getch()
 void disable_raw_mode() {}
 void enable_raw_mode() {}
@@ -347,9 +355,8 @@ void init_stage() {
 
 // 게임 화면 그리기
 void draw_game() {
-    //윈도우용 cls 추가
     #ifdef _WIN32
-    system("cls");
+    gotoxy(0, 0);
     printf("Stage: %d | Score: %d | Life: %d\n", stage + 1, score, life);  // 생명 출력
     printf("조작: A(왼쪽) D(오른쪽) (이동), W(위) S(아래) (사다리), Space (점프), q (종료)\n");//윈도우와 맥,리눅스 입력이 다르므로 분기작성
     #else
