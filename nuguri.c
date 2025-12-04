@@ -12,6 +12,14 @@
 #ifdef _WIN32
  #include <conio.h>
  #include <windows.h>
+void gotoxy(int x, int y) {
+    //콘솔창 제어 권한
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    //좌표저장용
+    COORD pos = { x,y };
+    //콘솔의 커서 위치 설정, hOut를 pos로
+    SetConsoleCursorPosition(hOut, pos);
+}
 #define getchar() _getch()
 void disable_raw_mode() {}
 void enable_raw_mode() {}
@@ -57,8 +65,6 @@ int kbhit() {
 #endif
 
 // 맵 및 게임 요소 정의 (수정된 부분)
-#define MAP_WIDTH 40  // 맵 너비를 40으로 변경
-#define MAP_HEIGHT 20
 #define MAX_STAGES 2
 #define MAX_ENEMIES 15 // 최대 적 개수 증가
 #define MAX_COINS 30   // 최대 코인 개수 증가
@@ -87,8 +93,7 @@ int life = 3;   // 생명 개수
 char ***map = NULL;           
 int *stage_widths = NULL;     
 int *stage_heights = NULL;    
-int stage_count = 0;
-char **display_map = NULL;          
+int stage_count = 0;      
 
 //게임 종료 상태
 #define END_NONE 0
@@ -124,11 +129,29 @@ void play_sound(int type) {
         Beep(180, 600);
     }
 #else //posix환경에서는 시스템 벨 문자 \a 사용 
-    if(type == SOUND_COIN)  system("powershell.exe -Command \"[console]::beep(800,40)\"");
-    else if(type == SOUND_JUMP) (void)system("powershell.exe -Command \"[console]::beep(600,30)\"");
-    else if(type == SOUND_HIT)  (void)system("powershell.exe -Command \"[console]::beep(200,200)\"");
-    else if(type == SOUND_CLEAR) (void)system("powershell.exe -Command \"[console]::beep(1200,100); Start-Sleep -m 50; [console]::beep(1500,150)\"");
-    else if(type == SOUND_DEAD)  (void)system("powershell.exe -Command \"[console]::beep(150,800)\"");
+ char cmd[256];
+
+ switch (type) {
+        case SOUND_COIN:  
+            sprintf(cmd, "powershell.exe -Command \"[console]::beep(800,40)\" > /dev/null 2>&1 &"); 
+            break;
+        case SOUND_JUMP:  
+            sprintf(cmd, "powershell.exe -Command \"[console]::beep(600,30)\" > /dev/null 2>&1 &"); 
+            break;
+        case SOUND_HIT:   
+            sprintf(cmd, "powershell.exe -Command \"[console]::beep(200,200)\" > /dev/null 2>&1 &"); 
+            break;
+        case SOUND_CLEAR: 
+            // 클리어 소리는 길이가 길어 렉이 더 잘 느껴지므로, 특히 비동기화가 중요합니다.
+            sprintf(cmd, "powershell.exe -Command \"[console]::beep(1200,100); Start-Sleep -m 50; [console]::beep(1500,150)\" > /dev/null 2>&1 &"); 
+            break;
+        case SOUND_DEAD:  
+            sprintf(cmd, "powershell.exe -Command \"[console]::beep(150,800)\" > /dev/null 2>&1 &"); 
+            break;
+        default: return;
+    }
+
+    system(cmd);
 #endif
 
 }
@@ -298,13 +321,6 @@ void load_maps() {
     fclose(fp);
 }    
 
-void allocate_display_map(int H, int W) {
-    display_map = malloc(sizeof(char*) * H);
-    for (int i = 0; i < H; i++) {
-        display_map[i] = malloc(W + 1);
-    }
-}
-
 // 현재 스테이지 초기화
 void init_stage() {
     enemy_count = 0;
@@ -317,10 +333,6 @@ void init_stage() {
     int H = stage_heights[stage];
     int W = stage_widths[stage];
 
-    if (display_map == NULL) {
-        allocate_display_map(H, W);
-    }    
-
     for (int y = 0; y < H; y++) {         
         for (int x = 0; x < W; x++) {     
             char cell = map[stage][y][x];
@@ -330,8 +342,9 @@ void init_stage() {
                 player_y = y;
             }
             else if (cell == 'X' && enemy_count < MAX_ENEMIES) {
-                enemies[enemy_count++] =
+                enemies[enemy_count] =
                     (Enemy){x, y, (rand() % 2) ? 1 : -1};
+                enemy_count++;                    
             }
             else if (cell == 'C' && coin_count < MAX_COINS) {
                 coins[coin_count++] = (Coin){x, y, 0};
@@ -342,9 +355,8 @@ void init_stage() {
 
 // 게임 화면 그리기
 void draw_game() {
-    //윈도우용 cls 추가
     #ifdef _WIN32
-    system("cls");
+    gotoxy(0, 0);
     printf("Stage: %d | Score: %d | Life: %d\n", stage + 1, score, life);  // 생명 출력
     printf("조작: A(왼쪽) D(오른쪽) (이동), W(위) S(아래) (사다리), Space (점프), q (종료)\n");//윈도우와 맥,리눅스 입력이 다르므로 분기작성
     #else
@@ -356,10 +368,10 @@ void draw_game() {
     int H = stage_heights[stage];
     int W = stage_widths[stage];    
 
-    //char **display_map = malloc(sizeof(char*) * H);
+    char **display_map = malloc(sizeof(char*) * H);
 
     for (int y = 0; y < H; y++) {
-        //display_map[y] = malloc(W + 1);
+        display_map[y] = malloc(W + 1);
 
         for (int x = 0; x < W; x++) {
             char cell = map[stage][y][x];
@@ -386,9 +398,9 @@ void draw_game() {
 
     for (int y = 0; y < H; y++) {
         printf("%s\n", display_map[y]);
-        //free(display_map[y]);
+        free(display_map[y]);
     }
-    //free(display_map);
+    free(display_map);
 }
 
 // 게임 상태 업데이트
@@ -449,7 +461,7 @@ void move_player(char input) {
             if(next_y < 0) next_y = 0;
             velocity_y++;
 
-            if (velocity_y < 0 && next_y < MAP_HEIGHT && map[stage][next_y][player_x] == '#') {
+            if (velocity_y < 0 && next_y < H && map[stage][next_y][player_x] == '#') {
                 velocity_y = 0;
             } else if (next_y < H) {
                 player_y = next_y;
@@ -477,6 +489,7 @@ void move_player(char input) {
         if (!coins[i].collected && player_x == coins[i].x && player_y == coins[i].y) {
             coins[i].collected = 1;
             score += 20;
+            play_sound(SOUND_COIN);
         }
     }
 }
