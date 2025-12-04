@@ -550,6 +550,7 @@ void title_screen() {
     printf("   q    : 게임 종료\n\n");
     printf("   코인을 모으고 E 지점까지 도달하세요!\n\n");
     printf("   아무 키나 눌러서 게임을 시작합니다...\n");
+    printf("========================================\n\n");
 
     while (!kbhit()) {
         usleep(100000);
@@ -570,6 +571,7 @@ void ending_screen() {
     printf("   축하합니다! 모든 스테이지를 클리어했습니다!\n");
     printf("   최종 점수: %d\n\n", score);
     printf("   아무 키나 눌러서 게임을 종료합니다...\n");
+    printf("========================================\n\n");
 
     while (kbhit()) {
         getchar();
@@ -588,6 +590,7 @@ void dead_ending_screen() {
     printf("========================================\n\n");
     printf("   모든 목숨을 잃었습니다...\n");
     printf("   아무 키나 눌러서 게임을 종료합니다...\n");
+    printf("========================================\n\n");
 
     while (!kbhit()) {
         usleep(100000);
