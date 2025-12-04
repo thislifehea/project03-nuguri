@@ -357,6 +357,7 @@ void init_stage() {
 void draw_game() {
     #ifdef _WIN32
     gotoxy(0, 0);
+    printf("\x1b[2J\x1b[H");
     printf("Stage: %d | Score: %d | Life: %d\n", stage + 1, score, life);  // 생명 출력
     printf("조작: A(왼쪽) D(오른쪽) (이동), W(위) S(아래) (사다리), Space (점프), q (종료)\n");//윈도우와 맥,리눅스 입력이 다르므로 분기작성
     #else
