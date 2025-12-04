@@ -516,6 +516,7 @@ void check_collisions(int* game_over) {
     for (int i = 0; i < enemy_count; i++) {
         if (player_x == enemies[i].x && player_y == enemies[i].y) {
             life--;  // 생명 감소
+            score = 0; // 점수 초기화
             if (life <= 0) {
                 *game_over = 1;
                 end_type = END_DEAD;
@@ -579,7 +580,6 @@ void dead_ending_screen() {
     printf("               GAME  OVER               \n");
     printf("========================================\n\n");
     printf("   모든 목숨을 잃었습니다...\n");
-    printf("   최종 점수: %d\n\n", score);
     printf("   아무 키나 눌러서 게임을 종료합니다...\n");
 
     while (!kbhit()) {
