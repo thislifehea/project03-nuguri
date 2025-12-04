@@ -57,8 +57,6 @@ int kbhit() {
 #endif
 
 // 맵 및 게임 요소 정의 (수정된 부분)
-#define MAP_WIDTH 40  // 맵 너비를 40으로 변경
-#define MAP_HEIGHT 20
 #define MAX_STAGES 2
 #define MAX_ENEMIES 15 // 최대 적 개수 증가
 #define MAX_COINS 30   // 최대 코인 개수 증가
@@ -438,7 +436,7 @@ void move_player(char input) {
             if(next_y < 0) next_y = 0;
             velocity_y++;
 
-            if (velocity_y < 0 && next_y < MAP_HEIGHT && map[stage][next_y][player_x] == '#') {
+            if (velocity_y < 0 && next_y < H && map[stage][next_y][player_x] == '#') {
                 velocity_y = 0;
             } else if (next_y < H) {
                 player_y = next_y;
